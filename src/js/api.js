@@ -1,3 +1,4 @@
+// filepath: c:\Users\syste\Desktop\goit-js-hw-11\src\js\api.js
 import axios from 'axios';
 
 const API_KEY = '50691194-26f992ad166ae576dbf185fc0';

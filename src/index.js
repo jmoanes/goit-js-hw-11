@@ -11,6 +11,17 @@ let page = 1;
 let currentQuery = '';
 let lightbox = new SimpleLightbox('.gallery a');
 
+// Initially hide the load more button
+loadMoreBtn.style.display = 'none';
+
+// Set up Notiflix configuration
+Notiflix.Notify.init({
+    position: 'right-top',
+    timeout: 3000,
+    cssAnimation: true,
+    cssAnimationDuration: 400,
+});
+
 searchForm.addEventListener('submit', onSearch);
 loadMoreBtn.addEventListener('click', onLoadMore);
 
@@ -18,11 +29,11 @@ async function onSearch(e) {
     e.preventDefault();
     page = 1;
     gallery.innerHTML = '';
-    loadMoreBtn.hidden = true;
+    loadMoreBtn.style.display = 'none';
 
     const searchQuery = e.currentTarget.elements.searchQuery.value.trim();
     if (!searchQuery) {
-        Notiflix.Notify.failure('Please enter a search query');
+        Notiflix.Notify.warning('Please enter a search query');
         return;
     }
 
@@ -37,10 +48,16 @@ async function onLoadMore() {
 
 async function loadImages(query) {
     try {
+        loadMoreBtn.disabled = true; // Disable button while loading
         const data = await fetchImages(query, page);
         
         if (data.hits.length === 0) {
-            Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+            loadMoreBtn.style.display = 'none';
+            if (page === 1) {
+                Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+            } else {
+                Notiflix.Notify.info("No more images to load.");
+            }
             return;
         }
 
@@ -50,19 +67,23 @@ async function loadImages(query) {
             Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
         }
 
+        // Check if we've reached the end of available images
         if (page * 40 >= data.totalHits) {
-            loadMoreBtn.hidden = true;
-            if (page > 1) {
-                Notiflix.Notify.info("We're sorry, but you've reached the end of search results.");
-            }
+            loadMoreBtn.style.display = 'none';
+            Notiflix.Notify.info("Sorry No more images to load.");
         } else {
-            loadMoreBtn.hidden = false;
+            loadMoreBtn.style.display = 'block';
         }
 
         lightbox.refresh();
-        scrollPage();
+        if (page > 1) {
+            scrollPage();
+        }
     } catch (error) {
         Notiflix.Notify.failure('Something went wrong. Please try again later.');
+        loadMoreBtn.style.display = 'none';
+    } finally {
+        loadMoreBtn.disabled = false; // Re-enable button after loading
     }
 }
 
@@ -71,10 +92,10 @@ function renderGallery(images) {
         <a href="${image.largeImageURL}" class="photo-card">
             <img src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
             <div class="info">
-                <p class="info-item"><b>Likes</b>${image.likes}</p>
-                <p class="info-item"><b>Views</b>${image.views}</p>
-                <p class="info-item"><b>Comments</b>${image.comments}</p>
-                <p class="info-item"><b>Downloads</b>${image.downloads}</p>
+                <p class="info-item"><b>Likes:</b> ${image.likes}</p>
+                <p class="info-item"><b>Views:</b> ${image.views}</p>
+                <p class="info-item"><b>Comments:</b> ${image.comments}</p>
+                <p class="info-item"><b>Downloads:</b> ${image.downloads}</p>
             </div>
         </a>
     `).join('');

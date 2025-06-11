@@ -62,7 +62,7 @@ async function loadImages(query) {
             if (page === 1) {
                 Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
             } else {
-                Notiflix.Notify.info("We've reached the end of search results.");
+                Notiflix.Notify.info("No more images results to show.");
             }
             loadMoreBtn.style.display = 'none';
             return;
@@ -79,7 +79,7 @@ async function loadImages(query) {
         if (totalLoadedImages >= data.totalHits || totalLoadedImages >= 500) {
             loadMoreBtn.style.display = 'none';
             if (data.hits.length > 0) {
-                Notiflix.Notify.info("You've reached the end of search results.");
+                Notiflix.Notify.info("No more images results to show.");
             }
         } else {
             loadMoreBtn.style.display = 'block';
